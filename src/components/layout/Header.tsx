@@ -1,7 +1,6 @@
-import { Search, Bell, User, Menu, MessageSquare } from "lucide-react";
+import { Search, User, Menu, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/components/ui/notification-bell";
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -18,9 +18,32 @@ interface HeaderProps {
     reputation: number;
   } | null;
   onAuthAction: (action: 'login' | 'register' | 'logout') => void;
+  notifications?: Array<{
+    id: string;
+    type: 'answer' | 'comment' | 'mention';
+    message: string;
+    user: {
+      name: string;
+      avatar?: string;
+    };
+    timestamp: Date;
+    read: boolean;
+    questionId?: string;
+  }>;
+  onMarkNotificationAsRead?: (notificationId: string) => void;
+  onMarkAllNotificationsAsRead?: () => void;
+  onNotificationClick?: (notification: any) => void;
 }
 
-export function Header({ onToggleSidebar, currentUser, onAuthAction }: HeaderProps) {
+export function Header({ 
+  onToggleSidebar, 
+  currentUser, 
+  onAuthAction,
+  notifications = [],
+  onMarkNotificationAsRead,
+  onMarkAllNotificationsAsRead,
+  onNotificationClick
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
@@ -64,12 +87,12 @@ export function Header({ onToggleSidebar, currentUser, onAuthAction }: HeaderPro
           {currentUser ? (
             <>
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                  3
-                </Badge>
-              </Button>
+              <NotificationBell
+                notifications={notifications}
+                onMarkAsRead={onMarkNotificationAsRead || (() => {})}
+                onMarkAllAsRead={onMarkAllNotificationsAsRead || (() => {})}
+                onNotificationClick={onNotificationClick || (() => {})}
+              />
 
               {/* User menu */}
               <DropdownMenu>

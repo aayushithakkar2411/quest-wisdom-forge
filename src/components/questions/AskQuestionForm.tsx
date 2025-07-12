@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { X, Bold, Italic, List, Link2, Image, Eye } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 interface AskQuestionFormProps {
   isOpen: boolean;
@@ -18,11 +17,9 @@ export function AskQuestionForm({ isOpen, onClose, onSubmit }: AskQuestionFormPr
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    tags: [] as string[],
-    currentTag: ''
+    tags: [] as string[]
   });
   const [errors, setErrors] = useState<any>({});
-  const [activeTab, setActiveTab] = useState('write');
 
   if (!isOpen) return null;
 
@@ -57,85 +54,28 @@ export function AskQuestionForm({ isOpen, onClose, onSubmit }: AskQuestionFormPr
       setFormData({
         title: '',
         description: '',
-        tags: [],
-        currentTag: ''
+        tags: []
       });
     }
   };
 
-  const handleAddTag = () => {
-    const tag = formData.currentTag.trim().toLowerCase();
-    if (tag && !formData.tags.includes(tag) && formData.tags.length < 5) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag],
-        currentTag: ''
-      }));
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
-
-  const insertFormatting = (format: string) => {
-    // Simple formatting insertion (in a real app, you'd use a proper rich text editor)
-    const textarea = document.getElementById('description') as HTMLTextAreaElement;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = formData.description.substring(start, end);
-    
-    let newText = '';
-    switch (format) {
-      case 'bold':
-        newText = `**${selectedText || 'bold text'}**`;
-        break;
-      case 'italic':
-        newText = `*${selectedText || 'italic text'}*`;
-        break;
-      case 'list':
-        newText = `\n- ${selectedText || 'list item'}`;
-        break;
-      case 'link':
-        newText = `[${selectedText || 'link text'}](url)`;
-        break;
-      default:
-        return;
-    }
-
-    const newDescription = 
-      formData.description.substring(0, start) + 
-      newText + 
-      formData.description.substring(end);
-    
-    setFormData(prev => ({ ...prev, description: newDescription }));
-  };
-
-  const renderPreview = () => {
-    // Simple markdown-like preview (in a real app, you'd use a proper markdown parser)
-    let preview = formData.description
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^\- (.+)$/gm, '<li>$1</li>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline">$1</a>');
-    
-    // Wrap list items
-    preview = preview.replace(/(<li>.*<\/li>)/gs, '<ul class="list-disc pl-6">$1</ul>');
-    
-    return preview;
-  };
+  const tagOptions = [
+    { value: 'javascript', label: 'JavaScript', count: 1234 },
+    { value: 'react', label: 'React', count: 987 },
+    { value: 'typescript', label: 'TypeScript', count: 756 },
+    { value: 'python', label: 'Python', count: 654 },
+    { value: 'nodejs', label: 'Node.js', count: 543 },
+    { value: 'css', label: 'CSS', count: 432 },
+    { value: 'html', label: 'HTML', count: 321 },
+    { value: 'sql', label: 'SQL', count: 234 },
+    { value: 'git', label: 'Git', count: 123 },
+    { value: 'docker', label: 'Docker', count: 98 },
+    { value: 'aws', label: 'AWS', count: 87 },
+    { value: 'algorithms', label: 'Algorithms', count: 76 },
+    { value: 'data-structures', label: 'Data Structures', count: 65 },
+    { value: 'machine-learning', label: 'Machine Learning', count: 54 },
+    { value: 'web-development', label: 'Web Development', count: 43 }
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-8">
@@ -178,84 +118,12 @@ export function AskQuestionForm({ isOpen, onClose, onSubmit }: AskQuestionFormPr
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Description *</Label>
-              
-              {/* Formatting toolbar */}
-              <div className="flex gap-1 p-2 border rounded-t-md bg-muted/30">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertFormatting('bold')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertFormatting('italic')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertFormatting('list')}
-                  className="h-8 w-8 p-0"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => insertFormatting('link')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Link2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
-                  <Image className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList>
-                  <TabsTrigger value="write">Write</TabsTrigger>
-                  <TabsTrigger value="preview">
-                    <Eye className="h-4 w-4 mr-1" />
-                    Preview
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="write" className="mt-2">
-                  <Textarea
-                    id="description"
-                    placeholder="Describe your problem in detail. Include what you've tried and what error messages you're getting..."
-                    className={`min-h-48 rounded-t-none ${errors.description ? 'border-destructive' : ''}`}
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="preview" className="mt-2">
-                  <div 
-                    className="min-h-48 p-3 border rounded-md bg-background prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ 
-                      __html: renderPreview() || '<p class="text-muted-foreground">Nothing to preview</p>' 
-                    }}
-                  />
-                </TabsContent>
-              </Tabs>
-              
+              <RichTextEditor
+                content={formData.description}
+                onChange={(content) => setFormData(prev => ({ ...prev, description: content }))}
+                placeholder="Describe your problem in detail. Include what you've tried and what error messages you're getting..."
+                className={errors.description ? 'border-destructive' : ''}
+              />
               {errors.description && (
                 <p className="text-sm text-destructive">{errors.description}</p>
               )}
@@ -264,37 +132,13 @@ export function AskQuestionForm({ isOpen, onClose, onSubmit }: AskQuestionFormPr
             {/* Tags */}
             <div className="space-y-2">
               <Label htmlFor="tags">Tags * (1-5 tags)</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {formData.tags.map((tag) => (
-                  <Badge 
-                    key={tag}
-                    variant="secondary"
-                    className="gap-1 cursor-pointer hover:bg-destructive/10"
-                    onClick={() => handleRemoveTag(tag)}
-                  >
-                    {tag}
-                    <X className="h-3 w-3" />
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  id="tags"
-                  placeholder="Type a tag and press Enter (e.g., javascript, react, python)"
-                  value={formData.currentTag}
-                  onChange={(e) => setFormData(prev => ({ ...prev, currentTag: e.target.value }))}
-                  onKeyDown={handleKeyDown}
-                  disabled={formData.tags.length >= 5}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddTag}
-                  disabled={!formData.currentTag.trim() || formData.tags.length >= 5}
-                >
-                  Add
-                </Button>
-              </div>
+              <MultiSelect
+                options={tagOptions}
+                value={formData.tags}
+                onChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
+                placeholder="Select or create tags..."
+                maxItems={5}
+              />
               <p className="text-xs text-muted-foreground">
                 Add relevant tags to help others find your question
               </p>
